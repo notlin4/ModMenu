@@ -51,6 +51,7 @@ public class ModMenuOptionsScreen extends GameOptionsScreen {
 	}
 
 	public void removed() {
+		ModMenu.checkForUpdates();
 		ModMenuConfigManager.save();
 	}
 }
