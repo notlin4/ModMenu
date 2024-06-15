@@ -84,7 +84,7 @@ public interface Mod {
 	/**
 	 * @return a mapping of roles to each contributor with that role.
 	 */
-	@NotNull SortedMap<String, SortedSet<String>> getCredits();
+	@NotNull SortedMap<String, Set<String>> getCredits();
 
 	@NotNull Set<Badge> getBadges();
 
