@@ -1,11 +1,13 @@
 package com.terraformersmc.modmenu.util.mod;
 
+import com.terraformersmc.modmenu.TextPlaceholderApiCompat;
 import com.google.common.base.Predicates;
 import com.terraformersmc.modmenu.ModMenu;
 import com.terraformersmc.modmenu.api.UpdateChecker;
 import com.terraformersmc.modmenu.api.UpdateInfo;
 import com.terraformersmc.modmenu.config.ModMenuConfig;
 import com.terraformersmc.modmenu.util.mod.fabric.FabricIconHandler;
+import eu.pb4.placeholders.api.ParserContext;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.text.Text;
@@ -17,103 +19,96 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public interface Mod {
-	@NotNull
-	String getId();
+	@NotNull String getId();
 
-	@NotNull
-	String getName();
+	@NotNull String getName();
 
 	@NotNull
 	default String getTranslatedName() {
 		String translationKey = "modmenu.nameTranslation." + getId();
-		if ((getId().equals("minecraft") || getId().equals("java") || ModMenuConfig.TRANSLATE_NAMES.getValue()) && I18n.hasTranslation(translationKey)) {
+		if ((getId().equals("minecraft") || getId().equals("java") || ModMenuConfig.TRANSLATE_NAMES.getValue()) && I18n.hasTranslation(
+			translationKey)) {
 			return I18n.translate(translationKey);
 		}
 		return getName();
 	}
 
-	@NotNull
-	NativeImageBackedTexture getIcon(FabricIconHandler iconHandler, int i);
+	@NotNull NativeImageBackedTexture getIcon(FabricIconHandler iconHandler, int i);
 
 	@NotNull
 	default String getSummary() {
-		return getTranslatedSummary();
+		String string = getTranslatedSummary();
+		return ModMenu.TEXT_PLACEHOLDER_COMPAT ? TextPlaceholderApiCompat.PARSER.parseText(string, ParserContext.of())
+			.getString() : string;
 	}
 
 	@NotNull
 	default String getTranslatedSummary() {
 		String translationKey = "modmenu.summaryTranslation." + getId();
-		if ((getId().equals("minecraft") || getId().equals("java") || ModMenuConfig.TRANSLATE_DESCRIPTIONS.getValue()) && I18n.hasTranslation(translationKey)) {
+		if ((getId().equals("minecraft") || getId().equals("java") || ModMenuConfig.TRANSLATE_DESCRIPTIONS.getValue()) && I18n.hasTranslation(
+			translationKey)) {
 			return I18n.translate(translationKey);
 		}
 		return getTranslatedDescription();
 	}
 
-	@NotNull
-	String getDescription();
+	@NotNull String getDescription();
 
 	@NotNull
 	default String getTranslatedDescription() {
 		String translatableDescriptionKey = "modmenu.descriptionTranslation." + getId();
-		if ((getId().equals("minecraft") || getId().equals("java") || ModMenuConfig.TRANSLATE_DESCRIPTIONS.getValue()) && I18n.hasTranslation(translatableDescriptionKey)) {
+		if ((getId().equals("minecraft") || getId().equals("java") || ModMenuConfig.TRANSLATE_DESCRIPTIONS.getValue()) && I18n.hasTranslation(
+			translatableDescriptionKey)) {
 			return I18n.translate(translatableDescriptionKey);
 		}
 		return getDescription();
 	}
 
-	@NotNull
-	String getVersion();
+	default Text getFormattedDescription() {
+		String string = getTranslatedDescription();
+		return ModMenu.TEXT_PLACEHOLDER_COMPAT ? TextPlaceholderApiCompat.PARSER.parseText(string,
+			ParserContext.of()) : Text.literal(string);
+	}
 
-	@NotNull
-	String getPrefixedVersion();
+	@NotNull String getVersion();
 
-	@NotNull
-	List<String> getAuthors();
+	@NotNull String getPrefixedVersion();
+
+	@NotNull List<String> getAuthors();
 
 	/**
 	 * @return a mapping of contributors to their roles.
 	 */
-	@NotNull
-	Map<String, Collection<String>> getContributors();
+	@NotNull Map<String, Collection<String>> getContributors();
 
 	/**
 	 * @return a mapping of roles to each contributor with that role.
 	 */
-	@NotNull
-	SortedMap<String, Set<String>> getCredits();
+	@NotNull SortedMap<String, Set<String>> getCredits();
 
-	@NotNull
-	Set<Badge> getBadges();
+	@NotNull Set<Badge> getBadges();
 
-	@Nullable
-	String getWebsite();
+	@Nullable String getWebsite();
 
-	@Nullable
-	String getIssueTracker();
+	@Nullable String getIssueTracker();
 
-	@Nullable
-	String getSource();
+	@Nullable String getSource();
 
-	@Nullable
-	String getParent();
+	@Nullable String getParent();
 
-	@NotNull
-	Set<String> getLicense();
+	@NotNull Set<String> getLicense();
 
-	@NotNull
-	Map<String, String> getLinks();
+	@NotNull Map<String, String> getLinks();
 
 	boolean isReal();
 
 	boolean allowsUpdateChecks();
 
-	@Nullable
-	UpdateChecker getUpdateChecker();
+	@Nullable UpdateChecker getUpdateChecker();
 
 	void setUpdateChecker(@Nullable UpdateChecker updateChecker);
 
-	@Nullable
-	UpdateInfo getUpdateInfo();
+	@Nullable UpdateInfo getUpdateInfo();
 
 	void setUpdateInfo(@Nullable UpdateInfo updateInfo);
 
@@ -123,7 +118,8 @@ public interface Mod {
 			return false;
 		}
 
-		return updateInfo.isUpdateAvailable() && updateInfo.getUpdateChannel().compareTo(ModMenuConfig.UPDATE_CHANNEL.getValue()) >= 0;
+		return updateInfo.isUpdateAvailable() && updateInfo.getUpdateChannel()
+			.compareTo(ModMenuConfig.UPDATE_CHANNEL.getValue()) >= 0;
 	}
 
 	default @Nullable String getSha512Hash() throws IOException {

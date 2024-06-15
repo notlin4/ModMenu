@@ -45,8 +45,9 @@ public class ModMenu implements ClientModInitializer {
 	private static final List<ModMenuApi> apiImplementations = new ArrayList<>();
 
 	private static int cachedDisplayedModCount = -1;
-	public static boolean runningQuilt = FabricLoader.getInstance().isModLoaded("quilt_loader");
-	public static boolean devEnvironment = FabricLoader.getInstance().isDevelopmentEnvironment();
+	public static final boolean RUNNING_QUILT = FabricLoader.getInstance().isModLoaded("quilt_loader");
+	public static final boolean DEV_ENVIRONMENT = FabricLoader.getInstance().isDevelopmentEnvironment();
+	public static final boolean TEXT_PLACEHOLDER_COMPAT = FabricLoader.getInstance().isModLoaded("placeholder-api");
 
 	public static Screen getConfigScreen(String modid, Screen menuScreen) {
 		for (ModMenuApi api : apiImplementations) {
@@ -72,7 +73,10 @@ public class ModMenu implements ClientModInitializer {
 		Map<String, UpdateChecker> updateCheckers = new HashMap<>();
 		Map<String, UpdateChecker> providedUpdateCheckers = new HashMap<>();
 
+		// Ignore deprecations, they're from Quilt Loader being in the dev env
+		//noinspection deprecation
 		FabricLoader.getInstance().getEntrypointContainers("modmenu", ModMenuApi.class).forEach(entrypoint -> {
+			//noinspection deprecation
 			ModMetadata metadata = entrypoint.getProvider().getMetadata();
 			String modId = metadata.getId();
 			try {
@@ -88,10 +92,11 @@ public class ModMenu implements ClientModInitializer {
 		});
 
 		// Fill mods map
+		//noinspection deprecation
 		for (ModContainer modContainer : FabricLoader.getInstance().getAllMods()) {
 			Mod mod;
 
-			if (runningQuilt) {
+			if (RUNNING_QUILT) {
 				mod = new QuiltMod(modContainer, modpackMods);
 			} else {
 				mod = new FabricMod(modContainer, modpackMods);

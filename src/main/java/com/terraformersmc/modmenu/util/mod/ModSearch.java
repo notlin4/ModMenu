@@ -33,7 +33,6 @@ public class ModSearch {
 		String modName = mod.getName();
 		String modTranslatedName = mod.getTranslatedName();
 		String modDescription = mod.getDescription();
-		String modTranslatedDescription = mod.getTranslatedDescription();
 		String modSummary = mod.getSummary();
 
 		String library = I18n.translate("modmenu.searchTerms.library");
@@ -58,7 +57,6 @@ public class ModSearch {
 		}
 
 		if (modDescription.toLowerCase(Locale.ROOT).contains(query) // Search default mod description
-				|| modTranslatedDescription.toLowerCase(Locale.ROOT).contains(query) // Search localized mod description
 				|| modSummary.toLowerCase(Locale.ROOT).contains(query) // Search mod summary
 				|| authorMatches(mod, query) // Search via author
 				|| library.contains(query) && mod.getBadges().contains(Mod.Badge.LIBRARY) // Search for lib mods
