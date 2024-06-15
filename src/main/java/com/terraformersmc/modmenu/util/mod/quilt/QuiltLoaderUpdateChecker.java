@@ -5,6 +5,7 @@ import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
+import org.jetbrains.annotations.Nullable;
 import org.quiltmc.loader.api.QuiltLoader;
 import org.quiltmc.loader.api.Version;
 import org.quiltmc.loader.api.VersionFormatException;
@@ -17,6 +18,8 @@ import com.terraformersmc.modmenu.api.UpdateChecker;
 import com.terraformersmc.modmenu.api.UpdateInfo;
 import com.terraformersmc.modmenu.util.HttpUtil;
 import com.terraformersmc.modmenu.util.JsonUtil;
+
+import net.minecraft.text.Text;
 
 public class QuiltLoaderUpdateChecker implements UpdateChecker {
 	public static final Logger LOGGER = LoggerFactory.getLogger("Mod Menu/Quilt Update Checker");
@@ -105,19 +108,7 @@ public class QuiltLoaderUpdateChecker implements UpdateChecker {
 		}
 
 		LOGGER.debug("Quilt Loader has a matching update available!");
-
-		UpdateChannel updateChannel;
-		var preRelease = match.preRelease();
-
-		if (preRelease.isEmpty()) {
-			updateChannel = UpdateChannel.RELEASE;
-		} else if (isStableOrBeta(preRelease)) {
-			updateChannel = UpdateChannel.BETA;
-		} else {
-			updateChannel = UpdateChannel.ALPHA;
-		}
-
-		return new QuiltLoaderUpdateInfo(updateChannel);
+		return new QuiltLoaderUpdateInfo(match);
 	}
 
 	private static boolean isNewer(Version.Semantic self, Version.Semantic other) {
@@ -133,15 +124,20 @@ public class QuiltLoaderUpdateChecker implements UpdateChecker {
 	}
 
 	private static class QuiltLoaderUpdateInfo implements UpdateInfo {
-		private final UpdateChannel updateChannel;
+		private final Version.Semantic version;
 
-		private QuiltLoaderUpdateInfo(UpdateChannel updateChannel) {
-			this.updateChannel = updateChannel;
+		private QuiltLoaderUpdateInfo(Version.Semantic version) {
+			this.version = version;
 		}
 
 		@Override
 		public boolean isUpdateAvailable() {
 			return true;
+		}
+
+		@Override
+		public @Nullable Text getUpdateMessage() {
+			return Text.translatable("modmenu.install_version", this.version.raw());
 		}
 
 		@Override
@@ -151,7 +147,15 @@ public class QuiltLoaderUpdateChecker implements UpdateChecker {
 
 		@Override
 		public UpdateChannel getUpdateChannel() {
-			return this.updateChannel;
+			var preRelease = this.version.preRelease();
+
+			if (preRelease.isEmpty()) {
+				return UpdateChannel.RELEASE;
+			} else if (isStableOrBeta(preRelease)) {
+				return UpdateChannel.BETA;
+			} else {
+				return UpdateChannel.ALPHA;
+			}
 		}
 	}
 }
