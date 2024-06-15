@@ -37,7 +37,6 @@ public class DescriptionListWidget extends EntryListWidget<DescriptionListWidget
 
 	private static final Text HAS_UPDATE_TEXT = Text.translatable("modmenu.hasUpdate");
 	private static final Text EXPERIMENTAL_TEXT = Text.translatable("modmenu.experimental").formatted(Formatting.GOLD);
-	private static final Text MODRINTH_TEXT = Text.translatable("modmenu.modrinth");
 	private static final Text DOWNLOAD_TEXT = Text.translatable("modmenu.downloadLink").formatted(Formatting.BLUE).formatted(Formatting.UNDERLINE);
 	private static final Text CHILD_HAS_UPDATE_TEXT = Text.translatable("modmenu.childHasUpdate");
 	private static final Text LINKS_TEXT = Text.translatable("modmenu.links");
@@ -114,30 +113,20 @@ public class DescriptionListWidget extends EntryListWidget<DescriptionListWidget
 							children().add(new DescriptionEntry(line, 8));
 						}
 
-						if (updateInfo instanceof ModrinthUpdateInfo modrinthUpdateInfo) {
-							Text updateText = Text.translatable("modmenu.updateText", VersionUtil.stripPrefix(modrinthUpdateInfo.getVersionNumber()), MODRINTH_TEXT)
-								.formatted(Formatting.BLUE)
-								.formatted(Formatting.UNDERLINE);
-
-							for (OrderedText line : textRenderer.wrapLines(updateText, wrapWidth - 16)) {
-								children().add(new LinkEntry(line, modrinthUpdateInfo.getDownloadLink(), 8));
-							}
+						Text updateMessage = updateInfo.getUpdateMessage();
+						String downloadLink = updateInfo.getDownloadLink();
+						if (updateMessage == null) {
+							updateMessage = DOWNLOAD_TEXT;
 						} else {
-							Text updateMessage = updateInfo.getUpdateMessage();
-							String downloadLink = updateInfo.getDownloadLink();
-							if (updateMessage == null) {
-								updateMessage = DOWNLOAD_TEXT;
-							} else {
-								if (downloadLink != null) {
-									updateMessage = updateMessage.copy().formatted(Formatting.BLUE).formatted(Formatting.UNDERLINE);
-								}
+							if (downloadLink != null) {
+								updateMessage = updateMessage.copy().formatted(Formatting.BLUE).formatted(Formatting.UNDERLINE);
 							}
-							for (OrderedText line : textRenderer.wrapLines(updateMessage, wrapWidth - 16)) {
-								if (downloadLink != null) {
-									children().add(new LinkEntry(line, downloadLink, 8));
-								} else {
-									children().add(new DescriptionEntry(line, 8));
-								}
+						}
+						for (OrderedText line : textRenderer.wrapLines(updateMessage, wrapWidth - 16)) {
+							if (downloadLink != null) {
+								children().add(new LinkEntry(line, downloadLink, 8));
+							} else {
+								children().add(new DescriptionEntry(line, 8));
 							}
 						}
 					}

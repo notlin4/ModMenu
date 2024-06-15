@@ -5,6 +5,7 @@ import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +21,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
+import net.minecraft.text.Text;
 
 public class FabricLoaderUpdateChecker implements UpdateChecker {
 	public static final Logger LOGGER = LoggerFactory.getLogger("Mod Menu/Fabric Update Checker");
@@ -111,7 +113,7 @@ public class FabricLoaderUpdateChecker implements UpdateChecker {
 		}
 
 		LOGGER.debug("Fabric Loader has a matching update available!");
-		return new FabricLoaderUpdateInfo(stableVersion);
+		return new FabricLoaderUpdateInfo(match.getFriendlyString(), stableVersion);
 	}
 
 	private static boolean isNewer(Version self, Version other) {
@@ -123,15 +125,22 @@ public class FabricLoaderUpdateChecker implements UpdateChecker {
 	}
 
 	private static class FabricLoaderUpdateInfo implements UpdateInfo {
+		private final String version;
 		private final boolean isStable;
 
-		private FabricLoaderUpdateInfo(boolean isStable) {
+		private FabricLoaderUpdateInfo(String version, boolean isStable) {
+			this.version = version;
 			this.isStable = isStable;
 		}
 
 		@Override
 		public boolean isUpdateAvailable() {
 			return true;
+		}
+
+		@Override
+		public @Nullable Text getUpdateMessage() {
+			return Text.translatable("modmenu.install_version", this.version);
 		}
 
 		@Override
