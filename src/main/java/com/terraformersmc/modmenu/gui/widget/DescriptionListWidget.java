@@ -353,7 +353,7 @@ public class DescriptionListWidget extends EntryListWidget<DescriptionListWidget
 	private Text creditsRoleText(String roleName) {
 		// Replace spaces and dashes in role names with underscores if they exist
 		// Notably Quilted Fabric API does this with FabricMC as "Upstream Owner"
-		var translationKey = roleName.replaceAll("[\s-]", "_");
+		var translationKey = roleName.replaceAll("[\s-]", "_").toLowerCase();
 
 		// Add an s to the default untranslated string if it ends in r since this
 		// Fixes common role names people use in English (e.g. Author -> Authors)
