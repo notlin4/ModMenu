@@ -14,7 +14,6 @@ import net.minecraft.SharedConstants;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.toast.SystemToast;
 import net.minecraft.text.Text;
-
 import net.minecraft.util.Util;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -52,7 +51,12 @@ public class UpdateCheckerUtil {
 		try (var executor = Executors.newThreadPerTaskExecutor(new UpdateCheckerThreadFactory())) {
 			List<Mod> withoutUpdateChecker = new ArrayList<>();
 
-			ModMenu.MODS.values().stream().filter(UpdateCheckerUtil::allowsUpdateChecks).forEach(mod -> {
+			List<Mod> updatableMods = ModMenu.MODS.values()
+				.stream()
+				.filter(UpdateCheckerUtil::allowsUpdateChecks)
+				.toList();
+
+			for (Mod mod : updatableMods) {
 				UpdateChecker updateChecker = mod.getUpdateChecker();
 
 				if (updateChecker == null) {
@@ -72,7 +76,7 @@ public class UpdateCheckerUtil {
 						LOGGER.info("Update available for '{}@{}'", mod.getId(), mod.getVersion());
 					});
 				}
-			});
+			}
 
 			if (modrinthApiV2Deprecated) {
 				return;
@@ -120,7 +124,10 @@ public class UpdateCheckerUtil {
 
 				for (var mod : modHashes.get(hash)) {
 					mod.setUpdateInfo(data.asUpdateInfo());
-					LOGGER.info("Update available for '{}@{}', (-> {})", mod.getId(), mod.getVersion(), data.versionNumber);
+					LOGGER.info("Update available for '{}@{}', (-> {})",
+						mod.getId(),
+						mod.getVersion(),
+						data.versionNumber);
 				}
 			}
 		}
@@ -143,7 +150,8 @@ public class UpdateCheckerUtil {
 			} catch (IOException e) {
 				LOGGER.error("Error getting mod hash for mod {}: ", modId, e);
 			}
-		};
+		}
+		;
 
 		return results;
 	}
@@ -151,9 +159,9 @@ public class UpdateCheckerUtil {
 	public static void triggerV2DeprecatedToast() {
 		if (modrinthApiV2Deprecated && ModMenuConfig.UPDATE_CHECKER.getValue()) {
 			MinecraftClient.getInstance().getToastManager().add(new SystemToast(
-					SystemToast.Type.PERIODIC_NOTIFICATION,
-					Text.translatable("modmenu.modrinth.v2_deprecated.title"),
-					Text.translatable("modmenu.modrinth.v2_deprecated.description")
+				SystemToast.Type.PERIODIC_NOTIFICATION,
+				Text.translatable("modmenu.modrinth.v2_deprecated.title"),
+				Text.translatable("modmenu.modrinth.v2_deprecated.description")
 			));
 		}
 	}
@@ -233,7 +241,10 @@ public class UpdateCheckerUtil {
 			updateChannels = List.of(UpdateChannel.ALPHA, UpdateChannel.BETA, UpdateChannel.RELEASE);
 		}
 
-		String body = ModMenu.GSON_MINIFIED.toJson(new LatestVersionsFromHashesBody(modHashes, loaders, mcVer, updateChannels));
+		String body = ModMenu.GSON_MINIFIED.toJson(new LatestVersionsFromHashesBody(modHashes,
+			loaders,
+			mcVer,
+			updateChannels));
 
 		LOGGER.debug("Body: {}", body);
 		var latestVersionsRequest = HttpRequest.newBuilder()
@@ -275,9 +286,15 @@ public class UpdateCheckerUtil {
 					}
 
 					var updateChannel = UpdateCheckerUtil.getUpdateChannel(versionType);
-					var versionHash = primaryFile.get().getAsJsonObject().get("hashes").getAsJsonObject().get("sha512").getAsString();
+					var versionHash = primaryFile.get()
+						.getAsJsonObject()
+						.get("hashes")
+						.getAsJsonObject()
+						.get("sha512")
+						.getAsString();
 
-					results.put(lookupHash, new VersionUpdate(projectId, versionId, versionNumber, date, updateChannel, versionHash));
+					results.put(lookupHash,
+						new VersionUpdate(projectId, versionId, versionNumber, date, updateChannel, versionHash));
 				});
 
 				return results;
@@ -311,7 +328,10 @@ public class UpdateCheckerUtil {
 		@SerializedName("version_types")
 		public Collection<String> versionTypes;
 
-		public LatestVersionsFromHashesBody(Collection<String> hashes, Collection<String> loaders, String mcVersion, Collection<UpdateChannel> updateChannels) {
+		public LatestVersionsFromHashesBody(Collection<String> hashes,
+											Collection<String> loaders,
+											String mcVersion,
+											Collection<UpdateChannel> updateChannels) {
 			this.hashes = hashes;
 			this.loaders = loaders;
 			this.gameVersions = Set.of(mcVersion);
