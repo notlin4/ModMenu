@@ -32,31 +32,33 @@ Here's an example of Mod Menu's translations into Pirate Speak. To create your o
 
 
 
-### Fabric Metadata API (`fabric.mod.json`)
+### Fabric Metadata API
 There's a number of things you can add just with metadata in your `fabric.mod.json`.
 
 All of these are added to a custom block in your `fabric.mod.json` for Mod Menu's metadata. Here's an example usage of many of the features this API provides:
 
 `fabric.mod.json`
-```json
-"custom": {
-  "modmenu": {
-    "links": {
-      "modmenu.discord": "https://discord.gg/jEGF5fb"
-    },
-    "badges": [ "library", "deprecated" ],
-    "parent": {
-      "id": "example-api",
-      "name": "Example API",
-      "description": "Modular example library",
-      "icon": "assets/example-api-module-v1/parent_icon.png",
-      "badges": [ "library" ]
-    },
-    "update_checker": true
+```json5
+{
+  ...
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.discord": "https://discord.gg/jEGF5fb"
+      },
+      "badges": [ "library", "deprecated" ],
+      "parent": {
+        "id": "example-api",
+        "name": "Example API",
+        "description": "Modular example library",
+        "icon": "assets/example-api-module-v1/parent_icon.png",
+        "badges": [ "library" ]
+      },
+      "update_checker": true
+    }
   }
 }
 ```
-
 
 <details>
 <summary>Fabric Metadata API Documentation</summary>
@@ -147,7 +149,20 @@ You can disable the update checker by setting `update_checker` to false in your 
 
 </details>
 
+### Quilt Metadata API
+Since Mod Menu supports Quilt as well, the same APIs in the Fabric Metadata API section are also available for Quilt mods, but the format for custom metadata is slightly different. 
 
+Instead of a `"modmenu"` block inside of a `"custom"` block, you put the `"modmenu"` block as an element in the root object. So it should look like:
+
+`quilt.mod.json`
+```json5
+{
+  ...
+  "modmenu": {
+    // Here's where your links, badges, etc. stuff goes
+  }
+}
+```
 
 ### Java API
 To use the Java API, you'll need to add Mod Menu as a compile-time dependency in your gradle project. This won't make your mod require Mod Menu, but it'll be present in your environment for you to test with.
