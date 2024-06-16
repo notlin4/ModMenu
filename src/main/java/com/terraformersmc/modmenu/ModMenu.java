@@ -10,6 +10,7 @@ import com.terraformersmc.modmenu.api.UpdateChecker;
 import com.terraformersmc.modmenu.config.ModMenuConfig;
 import com.terraformersmc.modmenu.config.ModMenuConfigManager;
 import com.terraformersmc.modmenu.event.ModMenuEventHandler;
+import com.terraformersmc.modmenu.util.EnumToLowerCaseJsonConverter;
 import com.terraformersmc.modmenu.util.ModMenuScreenTexts;
 import com.terraformersmc.modmenu.util.UpdateCheckerUtil;
 import com.terraformersmc.modmenu.util.mod.Mod;
@@ -34,8 +35,16 @@ public class ModMenu implements ClientModInitializer {
 	public static final String MOD_ID = "modmenu";
 	public static final String GITHUB_REF = "TerraformersMC/ModMenu";
 	public static final Logger LOGGER = LoggerFactory.getLogger("Mod Menu");
-	public static final Gson GSON = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).setPrettyPrinting().create();
-	public static final Gson GSON_MINIFIED = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
+	public static final Gson GSON;
+	public static final Gson GSON_MINIFIED;
+
+	static {
+		GsonBuilder builder = new GsonBuilder()
+				.registerTypeHierarchyAdapter(Enum.class, new EnumToLowerCaseJsonConverter())
+				.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+		GSON = builder.setPrettyPrinting().create();
+		GSON_MINIFIED = builder.create();
+	}
 
 	public static final Map<String, Mod> MODS = new HashMap<>();
 	public static final Map<String, Mod> ROOT_MODS = new HashMap<>();
@@ -168,12 +177,26 @@ public class ModMenu implements ClientModInitializer {
 
 	public static String getDisplayedModCount() {
 		if (cachedDisplayedModCount == -1) {
+			boolean includeChildren = ModMenuConfig.COUNT_CHILDREN.getValue();
+			boolean includeLibraries = ModMenuConfig.COUNT_LIBRARIES.getValue();
+			boolean includeHidden = ModMenuConfig.COUNT_HIDDEN_MODS.getValue();
+
 			// listen, if you have >= 2^32 mods then that's on you
-			cachedDisplayedModCount = Math.toIntExact(MODS.values().stream().filter(mod ->
-				(ModMenuConfig.COUNT_CHILDREN.getValue() || mod.getParent() == null) &&
-					(ModMenuConfig.COUNT_LIBRARIES.getValue() || !mod.getBadges().contains(Mod.Badge.LIBRARY)) &&
-					(ModMenuConfig.COUNT_HIDDEN_MODS.getValue() || !mod.isHidden())
-			).count());
+			cachedDisplayedModCount = Math.toIntExact(MODS.values().stream().filter(mod -> {
+				boolean isChild = mod.getParent() != null;
+				if (!includeChildren && isChild) {
+					return false;
+				}
+				boolean isLibrary = mod.getBadges().contains(Mod.Badge.LIBRARY);
+				if (!includeLibraries && isLibrary) {
+					return false;
+				}
+				if (!includeHidden && mod.isHidden()) {
+					return false;
+				}
+
+				return true;
+			}).count());
 		}
 		return NumberFormat.getInstance().format(cachedDisplayedModCount);
 	}
@@ -181,8 +204,10 @@ public class ModMenu implements ClientModInitializer {
 	public static Text createModsButtonText(boolean title) {
 		var titleStyle = ModMenuConfig.MODS_BUTTON_STYLE.getValue();
 		var gameMenuStyle = ModMenuConfig.GAME_MENU_BUTTON_STYLE.getValue();
-		var isIcon = title ? titleStyle == ModMenuConfig.TitleMenuButtonStyle.ICON : gameMenuStyle == ModMenuConfig.GameMenuButtonStyle.ICON;
-		var isShort = title ? titleStyle == ModMenuConfig.TitleMenuButtonStyle.SHRINK : gameMenuStyle == ModMenuConfig.GameMenuButtonStyle.REPLACE_BUGS;
+		var isIcon = title ? titleStyle == ModMenuConfig.TitleMenuButtonStyle.ICON : gameMenuStyle ==
+				ModMenuConfig.GameMenuButtonStyle.ICON;
+		var isShort = title ? titleStyle == ModMenuConfig.TitleMenuButtonStyle.SHRINK : gameMenuStyle ==
+				ModMenuConfig.GameMenuButtonStyle.REPLACE_BUGS;
 		MutableText modsText = ModMenuScreenTexts.TITLE.copy();
 		if (ModMenuConfig.MOD_COUNT_LOCATION.getValue().isOnModsButton() && !isIcon) {
 			String count = ModMenu.getDisplayedModCount();
