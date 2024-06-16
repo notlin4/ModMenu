@@ -160,7 +160,7 @@
   "option.modmenu.button_update_badge.false": "隐藏",
   "option.modmenu.quick_configure": "快速配置",
   "option.modmenu.quick_configure.true": "启用",
-  "option.modmenu.quick_configure.false": "禁用"
+  "option.modmenu.quick_configure.false": "禁用",
   "option.modmenu.update_channel": "更新频道",
   "option.modmenu.update_channel.alpha": "全部",
   "option.modmenu.update_channel.beta": "正式版和测试版",
