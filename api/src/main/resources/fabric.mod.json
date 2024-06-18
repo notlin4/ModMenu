@@ -10,5 +10,5 @@
     "fabricloader": ">=0.15.10",
     "minecraft": ">=1.21"
   },
-  "description": "The API used for defining config screens or update checkers."
+  "description": "The API used for defining config screens and update checkers in Mod Menu."
 }
