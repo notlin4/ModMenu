@@ -85,8 +85,4 @@ public interface ModMenuApi {
 	 */
 	default void attachModpackBadges(Consumer<String> consumer) {
 	}
-
-	default ScreenFactory provideModsScreen() {
-		return null;
-	}
 }
