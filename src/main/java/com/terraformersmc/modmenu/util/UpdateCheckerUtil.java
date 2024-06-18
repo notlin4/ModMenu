@@ -48,7 +48,8 @@ public class UpdateCheckerUtil {
 	}
 
 	private static void checkForUpdates0() {
-		try (var executor = Executors.newThreadPerTaskExecutor(new UpdateCheckerThreadFactory())) {
+		var executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors(), new UpdateCheckerThreadFactory());
+		try {
 			List<Mod> withoutUpdateChecker = new ArrayList<>();
 
 			List<Mod> updatableMods = ModMenu.MODS.values()
@@ -130,6 +131,8 @@ public class UpdateCheckerUtil {
 						data.versionNumber);
 				}
 			}
+		} finally {
+			executor.shutdown();
 		}
 	}
 
