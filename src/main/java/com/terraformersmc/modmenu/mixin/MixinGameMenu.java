@@ -28,7 +28,7 @@ public abstract class MixinGameMenu extends Screen {
 	}
 
 	@Inject(method = "initWidgets", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/widget/GridWidget;forEachChild(Ljava/util/function/Consumer;)V"), locals = LocalCapture.CAPTURE_FAILEXCEPTION)
-	private void onInitWidgets(CallbackInfo ci, GridWidget gridWidget, GridWidget.Adder adder, Text text) {
+	private void onInitWidgets(CallbackInfo ci, GridWidget gridWidget) {
 		if (gridWidget != null) {
 			final List<Widget> buttons = ((AccessorGridWidget) gridWidget).getChildren();
 			if (ModMenuConfig.MODIFY_GAME_MENU.getValue()) {
