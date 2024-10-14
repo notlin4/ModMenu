@@ -600,7 +600,7 @@ public class ModsScreen extends Screen {
 		Path modsDirectory = FabricLoader.getInstance().getGameDir().resolve("mods");
 
 		// Filter out none mods
-		List<Path> mods = paths.stream().filter(ModsScreen::isFabricMod).collect(Collectors.toList());
+		List<Path> mods = paths.stream().filter(ModsScreen::isValidMod).collect(Collectors.toList());
 
 		if (mods.isEmpty()) {
 			return;
@@ -638,9 +638,15 @@ public class ModsScreen extends Screen {
 		}, ModMenuScreenTexts.DROP_CONFIRM, Text.literal(modList)));
 	}
 
-	private static boolean isFabricMod(Path mod) {
+	private static boolean isValidMod(Path mod) {
 		try (JarFile jarFile = new JarFile(mod.toFile())) {
-			return jarFile.getEntry("fabric.mod.json") != null;
+			var isFabricMod = jarFile.getEntry("fabric.mod.json") != null;
+
+			if (!ModMenu.RUNNING_QUILT) {
+				return isFabricMod;
+			} else {
+				return isFabricMod || jarFile.getEntry("quilt.mod.json") != null;
+			}
 		} catch (IOException e) {
 			return false;
 		}
