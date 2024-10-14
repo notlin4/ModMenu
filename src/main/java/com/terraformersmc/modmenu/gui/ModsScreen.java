@@ -630,7 +630,7 @@ public class ModsScreen extends Screen {
 					SystemToast.add(client.getToastManager(),
 						SystemToast.Type.PERIODIC_NOTIFICATION,
 						ModMenuScreenTexts.DROP_SUCCESSFUL_LINE_1,
-						ModMenuScreenTexts.DROP_SUCCESSFUL_LINE_1
+						ModMenuScreenTexts.DROP_SUCCESSFUL_LINE_2
 					);
 				}
 			}
