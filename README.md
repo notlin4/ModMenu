@@ -1,5 +1,5 @@
 # Mod Menu
-![Screenshot of the Mods screen, showing a list of a few mods on the left side below a search bar and filters button, where Mod Menu is selected. On the right side of the screen, it shows more details about the mod, such as authors, a description, links, credits, and a button to configure the mod.](https://cdn.modrinth.com/data/mOgUt4GM/images/1b837be3f93c3e99e0ab70600698bd9f37723cec.png)
+![Screenshot of the Mods screen, showing a list of a few mods on the left side below a search bar and filters button, where Mod Menu is selected. On the right side of the screen, it shows more details about the mod, such as authors, a description, links, credits, and a button to configure the mod.](res/screenshot1.jpg)
 
 Mod Menu lets you view the mods you have installed and, if supported by the mod, enables quick and easy access to the mod's config screens.
 

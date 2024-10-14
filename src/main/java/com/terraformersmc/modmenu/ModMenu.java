@@ -25,6 +25,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,21 +60,31 @@ public class ModMenu implements ClientModInitializer {
 	public static final boolean DEV_ENVIRONMENT = FabricLoader.getInstance().isDevelopmentEnvironment();
 	public static final boolean TEXT_PLACEHOLDER_COMPAT = FabricLoader.getInstance().isModLoaded("placeholder-api");
 
-	public static Screen getConfigScreen(String modid, Screen menuScreen) {
+	public static boolean hasConfigScreen(String modId) {
+		return getConfigScreenFactory(modId) != null;
+	}
+
+	public static @Nullable Screen getConfigScreen(String modId, Screen parent) {
+		ConfigScreenFactory<?> factory = getConfigScreenFactory(modId);
+		if (factory != null) {
+			return factory.create(parent);
+		}
+		return null;
+	}
+
+	private static @Nullable ConfigScreenFactory<?> getConfigScreenFactory(String modId) {
+		if (ModMenuConfig.HIDDEN_CONFIGS.getValue().contains(modId)) {
+			return null;
+		}
+
 		for (ModMenuApi api : apiImplementations) {
 			var factoryProviders = api.getProvidedConfigScreenFactories();
 			if (!factoryProviders.isEmpty()) {
 				factoryProviders.forEach(configScreenFactories::putIfAbsent);
 			}
 		}
-		if (ModMenuConfig.HIDDEN_CONFIGS.getValue().contains(modid)) {
-			return null;
-		}
-		ConfigScreenFactory<?> factory = configScreenFactories.get(modid);
-		if (factory != null) {
-			return factory.create(menuScreen);
-		}
-		return null;
+
+		return configScreenFactories.get(modId);
 	}
 
 	@Override
@@ -127,21 +138,46 @@ public class ModMenu implements ClientModInitializer {
 		Map<String, Mod> dummyParents = new HashMap<>();
 
 		// Initialize parent map
+		HashSet<String> modParentSet = new HashSet<>();
 		for (Mod mod : MODS.values()) {
 			String parentId = mod.getParent();
-			if (parentId != null) {
-				Mod parent = MODS.getOrDefault(parentId, dummyParents.get(parentId));
+			if (parentId == null) {
+				ROOT_MODS.put(mod.getId(), mod);
+				continue;
+			}
+
+			Mod parent;
+			modParentSet.clear();
+			while (true) {
+				parent = MODS.getOrDefault(parentId, dummyParents.get(parentId));
 				if (parent == null) {
 					if (mod instanceof FabricMod) {
 						parent = new FabricDummyParentMod((FabricMod) mod, parentId);
 						dummyParents.put(parentId, parent);
 					}
 				}
-				PARENT_MAP.put(parent, mod);
-			} else {
-				ROOT_MODS.put(mod.getId(), mod);
+
+				parentId = parent != null ? parent.getParent() : null;
+				if (parentId == null) {
+					// It will most likely end here in the first iteration
+					break;
+				}
+
+				if (modParentSet.contains(parentId)) {
+					LOGGER.warn("Mods contain each other as parents: {}", modParentSet);
+					parent = null;
+					break;
+				}
+				modParentSet.add(parentId);
 			}
+
+			if (parent == null) {
+				ROOT_MODS.put(mod.getId(), mod);
+				continue;
+			}
+			PARENT_MAP.put(parent, mod);
 		}
+
 		MODS.putAll(dummyParents);
 		ModMenuEventHandler.register();
 	}
