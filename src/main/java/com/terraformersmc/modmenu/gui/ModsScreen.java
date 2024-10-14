@@ -102,26 +102,6 @@ public class ModsScreen extends Screen {
 
 	@Override
 	protected void init() {
-		for (Mod mod : ModMenu.MODS.values()) {
-			String id = mod.getId();
-			if (!modHasConfigScreen.containsKey(id)) {
-				try {
-					Screen configScreen = ModMenu.getConfigScreen(id, this);
-					modHasConfigScreen.put(id, configScreen != null);
-				} catch (java.lang.NoClassDefFoundError e) {
-					LOGGER.warn(
-						"The '" + id + "' mod config screen is not available because " + e.getLocalizedMessage() +
-							" is missing.");
-					modScreenErrors.put(id, e);
-					modHasConfigScreen.put(id, false);
-				} catch (Throwable e) {
-					LOGGER.error("Error from mod '" + id + "'", e);
-					modScreenErrors.put(id, e);
-					modHasConfigScreen.put(id, false);
-				}
-			}
-		}
-
 		int paneY = ModMenuConfig.CONFIG_MODE.getValue() ? 48 : 48 + 19;
 		this.paneWidth = this.width / 2 - 8;
 		this.rightPaneX = this.width - this.paneWidth;
@@ -203,9 +183,8 @@ public class ModsScreen extends Screen {
 		if (!ModMenuConfig.HIDE_CONFIG_BUTTONS.getValue()) {
 			this.configureButton = LegacyTexturedButtonWidget.legacyTexturedBuilder(ScreenTexts.EMPTY, button -> {
 					final String id = Objects.requireNonNull(selected).getMod().getId();
-					if (modHasConfigScreen.get(id)) {
-						Screen configScreen = ModMenu.getConfigScreen(id, this);
-						client.setScreen(configScreen);
+					if (getModHasConfigScreen(id)) {
+						this.safelyOpenConfigScreen(id);
 					} else {
 						button.active = false;
 					}
@@ -540,9 +519,9 @@ public class ModsScreen extends Screen {
 
 			if (this.configureButton != null) {
 
-				this.configureButton.active = modHasConfigScreen.get(modId);
+				this.configureButton.active = getModHasConfigScreen(modId);
 				this.configureButton.visible =
-					selected != null && modHasConfigScreen.get(modId) || modScreenErrors.containsKey(modId);
+					selected != null && getModHasConfigScreen(modId) || modScreenErrors.containsKey(modId);
 
 				if (modScreenErrors.containsKey(modId)) {
 					Throwable e = modScreenErrors.get(modId);
@@ -652,7 +631,29 @@ public class ModsScreen extends Screen {
 		}
 	}
 
-	public Map<String, Boolean> getModHasConfigScreen() {
-		return this.modHasConfigScreen;
+	public boolean getModHasConfigScreen(String modId) {
+		if (this.modScreenErrors.containsKey(modId)) {
+			return false;
+		} else {
+			return this.modHasConfigScreen.computeIfAbsent(modId, ModMenu::hasConfigScreen);
+		}
+	}
+
+	public void safelyOpenConfigScreen(String modId) {
+		try {
+			Screen screen = ModMenu.getConfigScreen(modId, this);
+
+			if (screen != null) {
+				this.client.setScreen(screen);
+			}
+		} catch (java.lang.NoClassDefFoundError e) {
+			LOGGER.warn(
+				"The '" + modId + "' mod config screen is not available because " + e.getLocalizedMessage() +
+					" is missing.");
+			modScreenErrors.put(modId, e);
+		} catch (Throwable e) {
+			LOGGER.error("Error from mod '" + modId + "'", e);
+			modScreenErrors.put(modId, e);
+		}
 	}
 }

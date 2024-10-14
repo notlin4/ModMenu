@@ -136,11 +136,7 @@ public class ModListWidget extends AlwaysSelectedEntryListWidget<ModListEntry> i
 		addedMods.clear();
 		Collection<Mod> mods = ModMenu.MODS.values().stream().filter(mod -> {
 			if (ModMenuConfig.CONFIG_MODE.getValue()) {
-				Map<String, Boolean> modHasConfigScreen = parent.getModHasConfigScreen();
-				var hasConfig = modHasConfigScreen.get(mod.getId());
-				if (!hasConfig) {
-					return false;
-				}
+				return !parent.getModHasConfigScreen(mod.getId());
 			}
 
 			return !mod.isHidden();
